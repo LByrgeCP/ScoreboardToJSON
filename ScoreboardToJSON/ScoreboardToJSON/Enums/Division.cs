@@ -4,6 +4,7 @@
     {
         Open = 0,
         AS = 1,
-        Middle = 2
+        Middle = 2,
+        None = -1
     }
 }

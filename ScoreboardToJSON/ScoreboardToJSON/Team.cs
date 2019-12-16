@@ -50,6 +50,8 @@ namespace ScoreboardToJSON
         }
         public double GetTotalScore()
         {
+            if (scoreboardTable.TotalScoreColumn == -1)
+                return 0;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.TotalScoreColumn}]");
@@ -57,6 +59,8 @@ namespace ScoreboardToJSON
         }
         public string GetPlaytime()
         {
+            if (scoreboardTable.playTimeColumn == -1)
+                return "00:00:00";
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.playTimeColumn}]");
@@ -70,6 +74,8 @@ namespace ScoreboardToJSON
 
         public int GetImageCount()
         {
+            if (scoreboardTable.imageCountColumn == -1)
+                return 0;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.imageCountColumn}]");
@@ -77,6 +83,8 @@ namespace ScoreboardToJSON
         }
         public Division GetDivisionFromScoreboard()
         {
+            if (scoreboardTable.divisionColumn == -1)
+                return Division.None;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.divisionColumn}]");
@@ -90,6 +98,8 @@ namespace ScoreboardToJSON
         }
         public string GetLocationFromScoreboard()
         {
+            if (scoreboardTable.locationColumn == -1)
+                return "N/A";
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.locationColumn}]");
@@ -97,6 +107,8 @@ namespace ScoreboardToJSON
         }
         public Tier GetTierFromScoreboard()
         {
+            if (scoreboardTable.tierColumn == -1)
+                return Tier.None;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.tierColumn}]");
@@ -112,6 +124,8 @@ namespace ScoreboardToJSON
         }
         public Warning GetWarningFromScoreboard()
         {
+            if (scoreboardTable.warnColumn == -1)
+                return Warning.None;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.warnColumn}]");

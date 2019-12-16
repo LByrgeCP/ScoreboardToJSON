@@ -27,6 +27,13 @@ namespace ScoreboardToJSON
 
             // Find all teams on scoreboard
             GetTeamsFromScoreboard();
+
+            // TODO: Grab config file and remove comments
+
+            // Grab all Teams summary data as List<Team>
+            List<Team> teamList = GetTeams();
+            // Grab all Teams descriptive data as List<TeamAdvanced>
+            List<TeamAdvanced> teamAdvList = GetAdvTeams();
         }
 
         /// <summary>

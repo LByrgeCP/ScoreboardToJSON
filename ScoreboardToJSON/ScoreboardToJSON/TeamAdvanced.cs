@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ScoreboardToJSON.Structs;
+﻿using HtmlAgilityPack;
 using ScoreboardToJSON.Enums;
-using System.Text.RegularExpressions;
-using HtmlAgilityPack;
+using ScoreboardToJSON.Structs;
+using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace ScoreboardToJSON
@@ -31,6 +28,7 @@ namespace ScoreboardToJSON
         public DateTimeOffset snapshottimestamp;
         public Dictionary<string, SortedDictionary<DateTimeOffset, int?>> ImageScoresOverTime = new Dictionary<string, SortedDictionary<DateTimeOffset, int?>>();
         public double ciscoScore;
+        public int AdministrativeAdjustment;
 
         public TeamTable teamtable;
 
@@ -72,6 +70,8 @@ namespace ScoreboardToJSON
         }
         public string GetLocationFromScoreboard()
         {
+            if (teamtable.locationColumn == -1)
+                return "N/A";
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.locationColumn}]");
@@ -79,6 +79,8 @@ namespace ScoreboardToJSON
         }
         public Division GetDivisionFromScoreboard()
         {
+            if (teamtable.divisionColumn == -1)
+                return Division.None;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.divisionColumn}]");
@@ -92,31 +94,47 @@ namespace ScoreboardToJSON
         }
         public Tier GetTierFromScoreboard()
         {
-            if (TeamscoreboardHtml.Contains("<td>Platinum"))
+            if (teamtable.tierColumn == -1)
+                return Tier.None;
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.tierColumn}]");
+            string line = node.InnerText;
+            if (line.Contains("Platinum"))
                 return Tier.Platinum;
-            else if (TeamscoreboardHtml.Contains("<td>Gold"))
+            else if (line.Contains("Gold"))
                 return Tier.Gold;
-            else if (TeamscoreboardHtml.Contains("<td>Silver"))
+            else if (line.Contains("Silver"))
                 return Tier.Silver;
             else
                 return Tier.None;
         }
         public Warning GetWarningFromScoreboard()
         {
-            if (TeamscoreboardHtml.Contains(">MT<"))
+            if (teamtable.warnColumn == -1)
+                return Warning.None;
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.warnColumn}]");
+            string line = node.InnerText;
+            if (line.Contains("MT"))
                 return Warning.MT;
-            else if (TeamscoreboardHtml.Contains("td><b>M</b"))
+            else if (line == "M")
                 return Warning.M;
-            else if (TeamscoreboardHtml.Contains("td><b>T</b"))
+            else if (line == "T")
                 return Warning.T;
             else
                 return Warning.None;
         }
         public string GetPlayTimeFromScoreboard()
         {
-            Match teammatch = Regex.Match(TeamscoreboardHtml, "<td>[1-9]*</td><td>[0-9]{2,}:[0-9]{2,}", RegexOptions.Multiline);
-            string timestr =  Regex.Replace(teammatch.Value, "<td>[1-9]*</td><td>", "");
-            string[] timesplit = timestr.Split(':');
+            if (teamtable.playTimeColumn == -1)
+                return "00:00:00";
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.playTimeColumn}]");
+            string line = node.InnerText;
+            string[] timesplit = line.Split(':');
             return new TimeSpan(int.Parse(timesplit[0]),    // hours
                            int.Parse(timesplit[1]),         // minutes
                            0).ToString();
@@ -124,23 +142,24 @@ namespace ScoreboardToJSON
 
         public double GetTotalScoreFromScoreboard()
         {
-            try
-            {
-                Match scorematch = Regex.Match(TeamscoreboardHtml, "[0-9.]+</td></tr>");
-                return double.Parse(scorematch.Value.Replace("</td></tr>", ""));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
+            if (teamtable.TotalScoreColumn == -1)
                 return 0;
-            }
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.TotalScoreColumn}]");
+            string line = node.InnerText;
+            return double.Parse(line);
         }
 
         public string GetScoreTimeFromScoreboard()
         {
-            Match teammatch = Regex.Match(TeamscoreboardHtml, "[0-9]{2,}:[0-9]{2,}</td><td><", RegexOptions.Multiline);
-            string timestr = teammatch.Value.Replace("</td><td><", "");
-            string[] timesplit = timestr.Split(':');
+            if (teamtable.scoreTimeColumn == -1)
+                return "00:00:00";
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.scoreTimeColumn}]");
+            string line = node.InnerText;
+            string[] timesplit = line.Split(':');
             return new TimeSpan(int.Parse(timesplit[0]),    // hours
                            int.Parse(timesplit[1]),         // minutes
                            0).ToString();
@@ -244,32 +263,23 @@ namespace ScoreboardToJSON
         }
         public double GetCiscoScore()
         {
+            if (teamtable.ciscoColumn == -1)
+                return 0;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
-            HtmlNode node = doc.DocumentNode.SelectSingleNode("/html/body/div[2]/div/table/tr[2]/td[11]");
-            try
-            {
-                return double.Parse(node.InnerText);
-            }
-            catch
-            {
-                return 0;
-            }
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.ciscoColumn}]");
+            string line = node.InnerText;
+            return double.Parse(line);
         }
-        public int AdministrativeAdjustment;
         public int GetAdminAdjust()
         {
+            if (teamtable.adminAdjustColumn == -1)
+                return 0;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
-            HtmlNode node = doc.DocumentNode.SelectSingleNode("/html/body/div[2]/div/table/tr[2]/td[10]");
-            try
-            {
-                return (int)double.Parse(node.InnerText);
-            }
-            catch
-            {
-                return 0;
-            }
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.adminAdjustColumn}]");
+            string line = node.InnerText;
+            return (int)double.Parse(line);
         }
 
         public string comment = null;

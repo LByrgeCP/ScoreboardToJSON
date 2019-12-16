@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ScoreboardToJSON
+﻿namespace ScoreboardToJSON
 {
     public class TeamTable
     {
         public int teamColumn;
+        public int locationColumn;
         public int divisionColumn;
         public int tierColumn;
         public int imageCountColumn;
@@ -23,16 +18,17 @@ namespace ScoreboardToJSON
         {
             string[] confSplit = config.Split(',');
             teamColumn = int.Parse(confSplit[0]);
-            divisionColumn = int.Parse(confSplit[1]);
-            tierColumn = int.Parse(confSplit[2]);
-            imageCountColumn = int.Parse(confSplit[3]);
-            playTimeColumn = int.Parse(confSplit[4]);
-            scoreTimeColumn = int.Parse(confSplit[5]);
-            warnColumn = int.Parse(confSplit[6]);
-            ccsScoreColumn = int.Parse(confSplit[7]);
-            adminAdjustColumn = int.Parse(confSplit[8]);
-            ciscoColumn = int.Parse(confSplit[9]);
-            TotalScoreColumn = int.Parse(confSplit[10]);
+            locationColumn = int.Parse(confSplit[1]);
+            divisionColumn = int.Parse(confSplit[2]);
+            tierColumn = int.Parse(confSplit[3]);
+            imageCountColumn = int.Parse(confSplit[4]);
+            playTimeColumn = int.Parse(confSplit[5]);
+            scoreTimeColumn = int.Parse(confSplit[6]);
+            warnColumn = int.Parse(confSplit[7]);
+            ccsScoreColumn = int.Parse(confSplit[8]);
+            adminAdjustColumn = int.Parse(confSplit[9]);
+            ciscoColumn = int.Parse(confSplit[10]);
+            TotalScoreColumn = int.Parse(confSplit[11]);
         }
     }
 }

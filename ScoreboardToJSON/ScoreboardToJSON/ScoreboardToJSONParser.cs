@@ -76,6 +76,20 @@ namespace ScoreboardToJSON
             }
             return teamlist;
         }
+        public List<TeamAdvanced> GetAdvTeams(string configline)
+        {
+            int currentteam = 1;
+            int totalteams = TeamsStrArr.Length;
+            List<TeamAdvanced> teamlist = new List<TeamAdvanced>();
+            foreach (string team in TeamsStrArr)
+            {
+                double percentdone = (double)currentteam / (double)totalteams * 100;
+                Console.WriteLine($"{currentteam}/{totalteams} 12-{team}   {Math.Round(percentdone, 2)}% finished with Team Parsing");
+                teamlist.Add(new TeamAdvanced(configline, team));
+                currentteam++;
+            }
+            return teamlist;
+        }
     }
 }
 

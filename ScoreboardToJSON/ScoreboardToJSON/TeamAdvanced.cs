@@ -14,13 +14,32 @@ namespace ScoreboardToJSON
 {
     public class TeamAdvanced
     {
+        public string TeamscoreboardHtml;
+        public string teamnumber;
+        public string teamid;
+        public string location;
+        public Division division;
+        public Tier tier;
+        public int imagecount;
+        public string playtime;
+        public double totalscore;
+        public Warning warning;
 
+        public string scoretime;
+        public Image[] images;
+        public string originuri;
+        public DateTimeOffset snapshottimestamp;
+        public Dictionary<string, SortedDictionary<DateTimeOffset, int?>> ImageScoresOverTime = new Dictionary<string, SortedDictionary<DateTimeOffset, int?>>();
+        public double ciscoScore;
 
-        public TeamAdvanced(string Teamnumber)
+        public TeamTable teamtable;
+
+        public TeamAdvanced(string configline, string Teamnumber)
         {
             teamnumber = Teamnumber;
             teamid = $"12-{teamnumber}";
             originuri = $"http://scoreboard.uscyberpatriot.org/team.php?team={teamid}";
+            teamtable = new TeamTable(configline);
             GetTeamScoreboardHtml();
             location = GetLocationFromScoreboard();
             tier = GetTierFromScoreboard();
@@ -53,14 +72,20 @@ namespace ScoreboardToJSON
         }
         public string GetLocationFromScoreboard()
         {
-            Match teammatch = Regex.Match(TeamscoreboardHtml, @"12-" + teamnumber + "</td><td>[A-Z]{2,3}<", RegexOptions.Multiline);
-            return teammatch.Value.Replace("12-" + teamnumber + "</td><td>", "").Replace("<", "");
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.locationColumn}]");
+            return node.InnerText;
         }
         public Division GetDivisionFromScoreboard()
         {
-            if (TeamscoreboardHtml.Contains("td>Open</td"))
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.divisionColumn}]");
+            string line = node.InnerText;
+            if (line.Contains("Open"))
                 return Division.Open;
-            else if (TeamscoreboardHtml.Contains("td>Middle"))
+            else if (line.Contains("Middle"))
                 return Division.Middle;
             else
                 return Division.AS;
@@ -217,24 +242,6 @@ namespace ScoreboardToJSON
             else
                 return Warning.None;
         }
-
-        public string TeamscoreboardHtml;
-        public string teamnumber;
-        public string teamid;
-        public string location;
-        public Division division;
-        public Tier tier;
-        public int imagecount;
-        public string playtime;
-        public double totalscore;
-        public Warning warning;
-
-        public string scoretime;
-        public Image[] images;
-        public string originuri;
-        public DateTimeOffset snapshottimestamp;
-        public Dictionary<string, SortedDictionary<DateTimeOffset, int?>> ImageScoresOverTime = new Dictionary<string, SortedDictionary<DateTimeOffset, int?>>();
-        public double ciscoScore;
         public double GetCiscoScore()
         {
             HtmlDocument doc = new HtmlDocument();
@@ -244,7 +251,7 @@ namespace ScoreboardToJSON
             {
                 return double.Parse(node.InnerText);
             }
-            catch (Exception ex)
+            catch
             {
                 return 0;
             }

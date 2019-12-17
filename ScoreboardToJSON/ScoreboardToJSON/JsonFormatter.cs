@@ -11,22 +11,44 @@ namespace ScoreboardToJSON
 {
     public class JsonFormatter
     {
+        /// <summary>
+        /// The JSON that will be returned via file
+        /// </summary>
         public JObject OutJSON = new JObject();
 
+        /// <summary>
+        /// Create and write the JSON to a file
+        /// </summary>
+        /// <param name="teamlist">The list of Team's to add to the json "summary" section</param>
+        /// <param name="advteamlist">The list of TeamAdvanced's to add to the json "teams" section</param>
+        /// <param name="outfile">The file to write the json to</param>
         public void CreateOutJSON(List<Team> teamlist, List<TeamAdvanced> advteamlist, string outfile)
         {
+            // Add summary section of the json
             Console.WriteLine("Adding team summaries to json");
             AddSummaryJSON(teamlist);
+
+            // Add the detailed "teams" section of the json
             Console.WriteLine("Adding team details to json");
             AddDetailedJSON(advteamlist);
+
+            // Add the round number to the json
             Console.WriteLine("Adding round to json");
             AddRoundJSON();
+
+            // Write the JSON to the output file
             Console.WriteLine($"Writing output to {outfile}");
             File.WriteAllText(outfile, OutJSON.ToString(Newtonsoft.Json.Formatting.None));
         }
 
+        /// <summary>
+        /// Add the summary section of the jsons
+        /// </summary>
+        /// <param name="teamlist">List of Team's to add</param>
         public void AddSummaryJSON(List<Team> teamlist)
         {
+            // For every team in the team list, add them to
+            // a JSON Array
             JArray JTeams = new JArray();
             foreach (Team team in teamlist)
             {
@@ -50,10 +72,16 @@ namespace ScoreboardToJSON
             }
             teamlist.Clear();
 
-
+            // Add the JTeams JSON Array to a new JSON Property
             JProperty JteamsProperty = new JProperty("TeamList", JTeams);
+
+            // Add the current time to a new JSON Property
             JProperty Snapshot = new JProperty("SnapshotTimestamp", DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss+00:00", null));
+
+            // Add the scoreboard url to a new JSON Property
             JProperty OriginURI = new JProperty("OriginUri", "http://scoreboard.uscyberpatriot.org/");
+
+            // Create a JSON Property with the filter
             JProperty Filter = new JProperty(
                 "Filter",
                 new JObject(
@@ -62,6 +90,8 @@ namespace ScoreboardToJSON
                     new JProperty("Category", null),
                     new JProperty("Location", null))
                 );
+
+            // Add all the JSON Properties to a new JSON Properties
             JProperty Summary = new JProperty(
                 "summary",
                 new JObject(
@@ -70,11 +100,18 @@ namespace ScoreboardToJSON
                     OriginURI,
                     Filter
                 ));
+
+            // Add the summary Property to the output JSON
             OutJSON.Add(Summary);
         }
-
+        
+        /// <summary>
+        /// Add Team's detailed data to the json
+        /// </summary>
+        /// <param name="AdvTeamList">List of TeamAdvanced's to add</param>
         public void AddDetailedJSON(List<TeamAdvanced> AdvTeamList)
         {
+            // TODO: Finish commenting
             JObject teams = new JObject();
             foreach (TeamAdvanced team in AdvTeamList)
             {
@@ -172,6 +209,10 @@ namespace ScoreboardToJSON
             }
             OutJSON.Add(new JProperty("teams", teams));
         }
+
+        /// <summary>
+        /// Add the current round (via user input) to the JSON
+        /// </summary>
         public void AddRoundJSON()
         {
             Console.Write("Input the round number (1, 2, 3, 4): ");

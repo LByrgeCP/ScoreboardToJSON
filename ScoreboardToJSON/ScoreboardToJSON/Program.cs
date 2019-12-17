@@ -13,7 +13,8 @@ namespace ScoreboardToJSON
     {
         static void Main(string[] args)
         {
-            if(args.Length == 0)
+            #region Arguments Checking
+            if (args.Length == 0)
             {
                 Show_Error("No input");
                 Show_Help();
@@ -116,14 +117,22 @@ namespace ScoreboardToJSON
                 Show_Help();
                 return; 
             }
+            #endregion
+            // Stopwatch to see how long the program takes
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
+            // Start parsing scoreboard
             new ScoreboardToJSONParser(fileInput, urlInput, fileOutput, customteamsinput);
+
+            // Stop stopwatch and print out execution time
             watch.Stop();
             Console.WriteLine($"Execution Time: {watch.Elapsed}");
             Console.WriteLine("Press any enter to exit...");
             Console.ReadLine();
         }
+        /// <summary>
+        /// Show help for the program
+        /// </summary>
         public static void Show_Help()
         {
             Console.WriteLine("Parse the scoreboard for CyPat score bot JSON");
@@ -141,19 +150,32 @@ namespace ScoreboardToJSON
             Console.WriteLine("\n\n\n");
             Console.WriteLine("View the source code at http://github.com/LByrgeCP/ScoreboardToJSON");
         }
+        /// <summary>
+        /// Write an error to the console
+        /// </summary>
+        /// <param name="error">Error to print</param>
         public static void Show_Error(string error)
         {
             Console.WriteLine($"ERROR: {error}");
         }
+        /// <summary>
+        /// Grab the contents from the custom teams file to get each team
+        /// </summary>
+        /// <param name="filename">Location of the custom teams file</param>
+        /// <returns>String array of all the team numbers</returns>
         public static string[] ParseCustomTeams(string filename)
         {
+            // Check if the file exists
             if(!File.Exists(filename))
             {
                 Show_Error($"{filename} does not exist, parsing all teams");
                 return null;
             }
+            // Get the file contents and split it into a string array
             string filecontents = File.ReadAllText(filename);
             string[] teamsarr = filecontents.Split(',');
+
+            // Check if any teams do not match the correct format (e.g. 0169 or 3670)
             foreach (string team in teamsarr)
             {
                 if (!Regex.IsMatch(team, "^[0-9]{4}$"))

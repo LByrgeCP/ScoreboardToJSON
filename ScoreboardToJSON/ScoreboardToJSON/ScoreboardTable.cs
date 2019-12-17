@@ -20,14 +20,23 @@ namespace ScoreboardToJSON
         public int adminAdjustColumn;
         public int ciscoColumn;
         public int TotalScoreColumn;
+
+        /// <summary>
+        /// Load the ScoreboardTable configuration
+        /// </summary>
+        /// <param name="config">string of the line of the configuration for the scoreboard table</param>
         public ScoreboardTable(string config)
         {
             string[] confSplit = config.Split(',');
+
+            // There should be twelve entries
             if (confSplit.Length != 12)
             {
                 Console.WriteLine("Error: Invalied Scoreboard Configuration");
                 Environment.Exit(1);
             }
+            try
+            {
             rankColumn = int.Parse(confSplit[0]);
             teamColumn = int.Parse(confSplit[1]);
             locationColumn = int.Parse(confSplit[2]);
@@ -40,6 +49,11 @@ namespace ScoreboardToJSON
             adminAdjustColumn = int.Parse(confSplit[9]);
             ciscoColumn = int.Parse(confSplit[10]);
             TotalScoreColumn = int.Parse(confSplit[11]);
+            } catch
+            {
+                Console.WriteLine("Error: Could not parse ScoreboardTable config");
+                Environment.Exit(1);
+            }
         }
     }
 }

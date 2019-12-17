@@ -59,14 +59,21 @@ namespace ScoreboardToJSON
         /// </summary>
         public void DownloadScoreboardHTML()
         {
-            // Create a new webclient
-            WebClient client = new WebClient();
+            try
+            {
+                // Create a new webclient
+                WebClient client = new WebClient();
 
-            // Download webclient data
-            ScoreboardHTML = client.DownloadString(baseURL);
+                // Download webclient data
+                ScoreboardHTML = client.DownloadString(baseURL);
 
-            // Dispose of client just in case
-            client.Dispose();
+                // Dispose of client just in case
+                client.Dispose();
+            } catch
+            {
+                Console.WriteLine($"Downloading URL {baseURL} Failed, trying again in 5 seconds");
+                DownloadScoreboardHTML();
+            }
         }
 
         public string[] GetConfigLines(string filename)

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ScoreboardToJSON
@@ -150,6 +151,7 @@ namespace ScoreboardToJSON
                 Console.WriteLine($"{currentteam}/{totalteams} 12-{team}   {Math.Round(percentdone, 2)}% finished with Team Details Parsing");
                 teamlist.Add(new TeamAdvanced(configline, team));
                 currentteam++;
+                Thread.Sleep(2000);
             }
             return teamlist;
         }

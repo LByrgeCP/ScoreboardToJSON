@@ -1,4 +1,6 @@
-﻿namespace ScoreboardToJSON
+﻿using System;
+
+namespace ScoreboardToJSON
 {
     public class TeamTable
     {
@@ -17,6 +19,11 @@
         public TeamTable(string config)
         {
             string[] confSplit = config.Split(',');
+            if(confSplit.Length != 12)
+            {
+                Console.WriteLine("Error: Invalied TeamTable Configuration");
+                Environment.Exit(1);
+            }
             teamColumn = int.Parse(confSplit[0]);
             locationColumn = int.Parse(confSplit[1]);
             divisionColumn = int.Parse(confSplit[2]);

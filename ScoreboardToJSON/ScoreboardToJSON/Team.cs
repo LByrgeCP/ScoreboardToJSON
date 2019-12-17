@@ -12,12 +12,6 @@ namespace ScoreboardToJSON
 {
     public class Team
     {
-        /*
-         * HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(TeamscoreboardHtml);
-            HtmlNode node = doc.DocumentNode.SelectSingleNode("/html/body/div[2]/div/table/tr[2]/td[11]");
-         * 
-         */
         string ScoreboardHTML;
         public string teamnumber;
         public string teamid;
@@ -31,8 +25,10 @@ namespace ScoreboardToJSON
         public string configLine;
         public ScoreboardTable scoreboardTable;
         public int rank;
-        public Team(string html, string config, string Teamnumber, int teamplace)
+        public HtmlDocument doc;
+        public Team(string html, string config, string Teamnumber, int teamplace, HtmlDocument document)
         {
+            doc = document;
             rank = teamplace;
             ScoreboardHTML = html;
             configLine = config;
@@ -52,8 +48,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.TotalScoreColumn == -1)
                 return 0;
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.TotalScoreColumn}]");
             return double.Parse(node.InnerText);
         }
@@ -61,8 +55,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.playTimeColumn == -1)
                 return "00:00:00";
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.playTimeColumn}]");
 
             // So teams >24 hours dont break bot
@@ -76,8 +68,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.imageCountColumn == -1)
                 return 0;
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.imageCountColumn}]");
             return int.Parse(node.InnerText);
         }
@@ -85,8 +75,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.divisionColumn == -1)
                 return Division.None;
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.divisionColumn}]");
             string line = node.InnerText;
             if (line.Contains("Open"))
@@ -100,8 +88,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.locationColumn == -1)
                 return "N/A";
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.locationColumn}]");
             return node.InnerText;
         }
@@ -109,8 +95,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.tierColumn == -1)
                 return Tier.None;
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.tierColumn}]");
             string line = node.InnerText;
             if (line.Contains("Platinum"))
@@ -126,8 +110,6 @@ namespace ScoreboardToJSON
         {
             if (scoreboardTable.warnColumn == -1)
                 return Warning.None;
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(ScoreboardHTML);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.warnColumn}]");
             string line = node.InnerText;
             if (line.Contains("MT"))

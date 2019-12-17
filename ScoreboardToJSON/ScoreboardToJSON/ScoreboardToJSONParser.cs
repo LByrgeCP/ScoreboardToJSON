@@ -1,5 +1,7 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -15,7 +17,7 @@ namespace ScoreboardToJSON
         private string OutputFile;
         public string ScoreboardHTML;
         public string[] TeamsStrArr;
-        public ScoreboardToJSONParser(string fileInput, string urlInput, string fileOutput)
+        public ScoreboardToJSONParser(string fileInput, string urlInput, string fileOutput, string[] customTeamlist = null)
         {
             // Set needed variables
             ConfigFile = fileInput;
@@ -25,15 +27,30 @@ namespace ScoreboardToJSON
             // Download the html for mass parsing
             DownloadScoreboardHTML();
 
-            // Find all teams on scoreboard
-            GetTeamsFromScoreboard();
+            if (customTeamlist == null)
+                // Find all teams on scoreboard
+                GetTeamsFromScoreboard();
+            else
+                // Set custom input teams to TeamsStrArr
+                TeamsStrArr = customTeamlist;
+            // Grab config file and remove comments
+            string[] conflines = GetConfigLines(fileInput);
 
-            // TODO: Grab config file and remove comments
+            // Exit if more than two config lines
+            if (conflines.Length != 2)
+            {
+                Console.WriteLine($"Invald configuration {fileInput}");
+                Environment.Exit(1);
+            }
 
             // Grab all Teams summary data as List<Team>
-            List<Team> teamList = GetTeams();
+            List<Team> teamList = GetTeams(conflines[0]);
+
             // Grab all Teams descriptive data as List<TeamAdvanced>
-            List<TeamAdvanced> teamAdvList = GetAdvTeams();
+            List<TeamAdvanced> teamAdvList = GetAdvTeams(conflines[1]);
+
+            JsonFormatter jsonFormatter = new JsonFormatter();
+            jsonFormatter.CreateOutJSON(teamList, teamAdvList, fileOutput);
         }
 
         /// <summary>
@@ -41,9 +58,32 @@ namespace ScoreboardToJSON
         /// </summary>
         public void DownloadScoreboardHTML()
         {
+            // Create a new webclient
             WebClient client = new WebClient();
+
+            // Download webclient data
             ScoreboardHTML = client.DownloadString(baseURL);
+
+            // Dispose of client just in case
             client.Dispose();
+        }
+
+        public string[] GetConfigLines(string filename)
+        {
+            // Exit if config file doesnt exist
+            if (!File.Exists(filename))
+            {
+                Console.WriteLine($"Error: File {filename} does not exist.");
+                Environment.Exit(1);
+            }
+
+            // Loop through all lines in file and return non-comment lines
+            List<string> linesOut = new List<string>();
+            string[] filelines = File.ReadAllLines(filename);
+            foreach (string line in filelines)
+                if (!Regex.IsMatch(line, "^\\s*#"))
+                    linesOut.Add(line);
+            return linesOut.ToArray();
         }
 
         /// <summary>
@@ -51,6 +91,7 @@ namespace ScoreboardToJSON
         /// </summary>
         public void GetTeamsFromScoreboard()
         {
+            // Regex all teams and set TeamsStrArr to an array of all team numbers (not includng 12-)
             MatchCollection teamsonscoreboard = Regex.Matches(ScoreboardHTML, @"12\-[0-9]{4}[^']");
             List<string> teamlist = new List<string>();
             foreach (Match match in teamsonscoreboard)
@@ -71,27 +112,42 @@ namespace ScoreboardToJSON
         /// <returns>A List of Teans for the JSON</returns>
         public List<Team> GetTeams(string configline)
         {
+            // For printing how many teams are parsed
             int currentteam = 1;
             int totalteams = TeamsStrArr.Length;
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(ScoreboardHTML);
+            // loop through all teams and add each one to teamlist
             List<Team> teamlist = new List<Team>();
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                Console.WriteLine($"{currentteam}/{totalteams} 12-{team}   {Math.Round(percentdone, 2)}% finished with Team Parsing");
-                teamlist.Add(new Team(ScoreboardHTML, configline, team, currentteam));
+                Console.WriteLine($"{currentteam}/{totalteams} 12-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
+                teamlist.Add(new Team(ScoreboardHTML, configline, team, currentteam, doc));
                 currentteam++;
             }
             return teamlist;
         }
+        /// <summary>
+        /// Get a List of TeamAdvanced for output
+        /// </summary>
+        /// <param name="configline">
+        /// Line from config file containing comma-separated 
+        /// strings representing each row in a teams table.
+        /// </param>
+        /// <returns>List of TeamAdvanced</returns>
         public List<TeamAdvanced> GetAdvTeams(string configline)
         {
+            // For printing how many teams are parsed
             int currentteam = 1;
             int totalteams = TeamsStrArr.Length;
+
+            // loop through all teams and add each one to teamlist
             List<TeamAdvanced> teamlist = new List<TeamAdvanced>();
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                Console.WriteLine($"{currentteam}/{totalteams} 12-{team}   {Math.Round(percentdone, 2)}% finished with Team Parsing");
+                Console.WriteLine($"{currentteam}/{totalteams} 12-{team}   {Math.Round(percentdone, 2)}% finished with Team Details Parsing");
                 teamlist.Add(new TeamAdvanced(configline, team));
                 currentteam++;
             }

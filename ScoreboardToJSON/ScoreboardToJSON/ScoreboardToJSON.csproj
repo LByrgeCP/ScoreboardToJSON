@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enums\Division.cs" />
+    <Compile Include="JsonFormatter.cs" />
     <Compile Include="Line.cs" />
     <Compile Include="ScoreboardToJSONParser.cs" />
     <Compile Include="Structs\Image.cs" />

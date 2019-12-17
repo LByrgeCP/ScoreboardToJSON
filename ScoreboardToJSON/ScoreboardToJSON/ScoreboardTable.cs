@@ -23,6 +23,11 @@ namespace ScoreboardToJSON
         public ScoreboardTable(string config)
         {
             string[] confSplit = config.Split(',');
+            if (confSplit.Length != 12)
+            {
+                Console.WriteLine("Error: Invalied Scoreboard Configuration");
+                Environment.Exit(1);
+            }
             rankColumn = int.Parse(confSplit[0]);
             teamColumn = int.Parse(confSplit[1]);
             locationColumn = int.Parse(confSplit[2]);

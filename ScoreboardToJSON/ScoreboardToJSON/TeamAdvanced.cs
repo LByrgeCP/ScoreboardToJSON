@@ -35,7 +35,7 @@ namespace ScoreboardToJSON
         public TeamAdvanced(string configline, string Teamnumber)
         {
             teamnumber = Teamnumber;
-            teamid = $"12-{teamnumber}";
+            teamid = $"13-{teamnumber}";
             originuri = $"http://scoreboard.uscyberpatriot.org/team.php?team={teamid}";
             teamtable = new TeamTable(configline);
             GetTeamScoreboardHtml();
@@ -75,6 +75,8 @@ namespace ScoreboardToJSON
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.locationColumn}]");
+            if (node.InnerText == "")
+                return "N/A";
             return node.InnerText;
         }
         public Division GetDivisionFromScoreboard()
@@ -89,6 +91,8 @@ namespace ScoreboardToJSON
                 return Division.Open;
             else if (line.Contains("Middle"))
                 return Division.Middle;
+            else if (line.Contains("High"))
+                return Division.Open;
             else
                 return Division.AS;
         }
@@ -117,7 +121,7 @@ namespace ScoreboardToJSON
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.warnColumn}]");
             string line = node.InnerText;
-            if (line.Contains("MT"))
+            if (line.Contains("MT") || line.Contains("TM"))
                 return Warning.MT;
             else if (line == "M")
                 return Warning.M;
@@ -137,7 +141,7 @@ namespace ScoreboardToJSON
             string[] timesplit = line.Split(':');
             return new TimeSpan(int.Parse(timesplit[0]),    // hours
                            int.Parse(timesplit[1]),         // minutes
-                           0).ToString();
+                           int.Parse(timesplit[2])).ToString();
         }
 
         public double GetTotalScoreFromScoreboard()
@@ -162,7 +166,7 @@ namespace ScoreboardToJSON
             string[] timesplit = line.Split(':');
             return new TimeSpan(int.Parse(timesplit[0]),    // hours
                            int.Parse(timesplit[1]),         // minutes
-                           0).ToString();
+                           int.Parse(timesplit[2])).ToString();
         }
 
         public void GetAdvancedImages()
@@ -256,7 +260,7 @@ namespace ScoreboardToJSON
                 return Warning.M;
             else if (str == "T")
                 return Warning.T;
-            else if (str == "MT")
+            else if (str == "MT" || str == "TM")
                 return Warning.MT;
             else
                 return Warning.None;

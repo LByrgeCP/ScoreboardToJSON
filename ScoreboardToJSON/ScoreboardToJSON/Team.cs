@@ -35,7 +35,7 @@ namespace ScoreboardToJSON
             scoreboardTable = new ScoreboardTable(configLine);
             teamnumber = Teamnumber;
             html = null;
-            teamid = "12-" + Teamnumber;
+            teamid = "13-" + Teamnumber;
             location = GetLocationFromScoreboard();
             division = GetDivisionFromScoreboard();
             tier = GetTierFromScoreboard();
@@ -61,7 +61,7 @@ namespace ScoreboardToJSON
             string[] timesplit = node.InnerText.Split(':');
             return new TimeSpan(int.Parse(timesplit[0]),    // hours
                            int.Parse(timesplit[1]),         // minutes
-                           0).ToString();
+                           int.Parse(timesplit[2])).ToString();
         }
 
         public int GetImageCount()
@@ -81,6 +81,8 @@ namespace ScoreboardToJSON
                 return Division.Open;
             else if (line.Contains("Middle"))
                 return Division.Middle;
+            else if (line.Contains("High"))
+                return Division.Open;
             else
                 return Division.AS;
         }
@@ -89,6 +91,8 @@ namespace ScoreboardToJSON
             if (scoreboardTable.locationColumn == -1)
                 return "N/A";
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.locationColumn}]");
+            if (node.InnerText == "")
+                return "N/A";
             return node.InnerText;
         }
         public Tier GetTierFromScoreboard()
@@ -112,7 +116,7 @@ namespace ScoreboardToJSON
                 return Warning.None;
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.warnColumn}]");
             string line = node.InnerText;
-            if (line.Contains("MT"))
+            if (line.Contains("MT") || line.Contains("TM"))
                 return Warning.MT;
             else if (line.Contains("M"))
                 return Warning.M;

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>-f "C:\Users\router\Desktop\ScoreboardToJSON\ScoreboardToJSON\ScoreboardToJSON\bin\Debug\config.txt" -o "C:\Users\router\Desktop\ScoreboardToJSON\ScoreboardToJSON\ScoreboardToJSON\bin\Debug\out.json" -t "C:\Users\router\Desktop\ScoreboardToJSON\ScoreboardToJSON\ScoreboardToJSON\bin\Debug\teams.txt"</StartArguments>
+    <StartArguments>-f "C:\Users\Landon Byrge\Desktop\ScoreboardToJSON.conf" -o "C:\Users\Landon Byrge\Desktop\scoreboard.json" -t "C:\Users\Landon Byrge\Desktop\teams.txt"</StartArguments>
   </PropertyGroup>
 </Project>

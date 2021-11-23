@@ -6,23 +6,18 @@
     public enum Warning
     {
         /// <summary>
-        /// Team has received no warning
-        /// </summary>
-        None = 0,
-
-        /// <summary>
         /// Team received a multiple instances warning
         /// </summary>
-        M,
+        MultiImage = 1 << 0,
 
         /// <summary>
         /// Team recieved an overtime warning
         /// </summary>
-        T,
+        TimeOver = 1 << 1,
 
         /// <summary>
-        /// Team recieved both a multiple instances warning and an overtime warning
+        /// Team recieved a Withheld warning
         /// </summary>
-        MT
+        Withdrawn = 1 << 2
     }
 }

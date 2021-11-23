@@ -35,14 +35,21 @@ namespace ScoreboardToJSON
             scoreboardTable = new ScoreboardTable(configLine);
             teamnumber = Teamnumber;
             html = null;
-            teamid = "13-" + Teamnumber;
+            teamid = "14-" + Teamnumber;
             location = GetLocationFromScoreboard();
             division = GetDivisionFromScoreboard();
             tier = GetTierFromScoreboard();
-            imagecount = GetImageCount();
             playtime = GetPlaytime();
-            totalscore = GetTotalScore();
             warning = GetWarningFromScoreboard();
+            if ((warning & Warning.Withdrawn) != Warning.Withdrawn)
+            {
+                imagecount = GetImageCount();
+                totalscore = GetTotalScore();
+            } else
+            {
+                imagecount = 0;
+                totalscore = 0;
+            }
         }
         public double GetTotalScore()
         {
@@ -112,18 +119,18 @@ namespace ScoreboardToJSON
         }
         public Warning GetWarningFromScoreboard()
         {
+            Warning teamwarn = 0;
             if (scoreboardTable.warnColumn == -1)
-                return Warning.None;
+                return 0;
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table/tr[{rank + 1}]/td[{scoreboardTable.warnColumn}]");
             string line = node.InnerText;
-            if (line.Contains("MT") || line.Contains("TM"))
-                return Warning.MT;
-            else if (line.Contains("M"))
-                return Warning.M;
-            else if (line.Contains("T"))
-                return Warning.T;
-            else
-                return Warning.None;
+            if (line.Contains("M"))
+                teamwarn |= Warning.MultiImage;
+            if (line.Contains("T"))
+                teamwarn |= Warning.TimeOver;
+            if (line.Contains("W"))
+                teamwarn |= Warning.Withdrawn;
+            return teamwarn;
         }
     }
 }

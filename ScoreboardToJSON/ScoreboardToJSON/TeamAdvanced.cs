@@ -35,7 +35,7 @@ namespace ScoreboardToJSON
         public TeamAdvanced(string configline, string Teamnumber)
         {
             teamnumber = Teamnumber;
-            teamid = $"13-{teamnumber}";
+            teamid = $"14-{teamnumber}";
             originuri = $"http://scoreboard.uscyberpatriot.org/team.php?team={teamid}";
             teamtable = new TeamTable(configline);
             GetTeamScoreboardHtml();
@@ -43,15 +43,25 @@ namespace ScoreboardToJSON
             tier = GetTierFromScoreboard();
             division = GetDivisionFromScoreboard();
             playtime = GetPlayTimeFromScoreboard();
-            totalscore = GetTotalScoreFromScoreboard();
             warning = GetWarningFromScoreboard();
-            ciscoScore = GetCiscoScore();
             scoretime = GetScoreTimeFromScoreboard();
-            GetAdvancedImages();
-            GetImages();
             snapshottimestamp = DateTimeOffset.UtcNow;
-            AdministrativeAdjustment = GetAdminAdjust();
-            imagecount = images.Length;
+            if ((warning & Warning.Withdrawn) != Warning.Withdrawn)
+            {
+                totalscore = GetTotalScoreFromScoreboard();
+                ciscoScore = GetCiscoScore();
+                GetAdvancedImages();
+                GetImages();
+                AdministrativeAdjustment = GetAdminAdjust();
+                imagecount = images.Length;
+            } else
+            {
+                GetAdvancedImages();
+                GetImages();
+                totalscore = 0;
+                ciscoScore = 0;
+                AdministrativeAdjustment = 0;
+            }
         }
         public void GetTeamScoreboardHtml()
         {
@@ -115,20 +125,20 @@ namespace ScoreboardToJSON
         }
         public Warning GetWarningFromScoreboard()
         {
+            Warning teamwarn = 0;
             if (teamtable.warnColumn == -1)
-                return Warning.None;
+                return teamwarn;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.warnColumn}]");
             string line = node.InnerText;
-            if (line.Contains("MT") || line.Contains("TM"))
-                return Warning.MT;
-            else if (line == "M")
-                return Warning.M;
-            else if (line == "T")
-                return Warning.T;
-            else
-                return Warning.None;
+            if (line.Contains("M"))
+                teamwarn |= Warning.MultiImage;
+            if (line.Contains("T"))
+                teamwarn |= Warning.TimeOver;
+            if (line.Contains("W"))
+                teamwarn |= Warning.Withdrawn;
+            return teamwarn;
         }
         public string GetPlayTimeFromScoreboard()
         {
@@ -235,12 +245,22 @@ namespace ScoreboardToJSON
                 Image image = new Image();
                 image.imagename = Values[0];
                 image.playtime = GetCorrectPlayTime(Values[1].Trim());
-                image.vulnsfound = int.Parse(Values[2]);
-                image.vulnsremaining = int.Parse(Values[3]);
-                image.penalties = int.Parse(Values[4]);
-                image.score = int.Parse(Values[5]);
-                image.warnings = StringToWarning(Values[6]);
                 image.pointspossible = 100;
+                image.warnings = StringToWarning(Values[6]);
+                if ((warning & Warning.Withdrawn) == Warning.Withdrawn)
+                {
+                    image.vulnsfound = 0;
+                    image.vulnsremaining = 0;
+                    image.penalties = 0;
+                    image.score = 0;
+                }
+                else
+                {
+                    image.vulnsfound = int.Parse(Values[2]);
+                    image.vulnsremaining = int.Parse(Values[3]);
+                    image.penalties = int.Parse(Values[4]);
+                    image.score = int.Parse(Values[5]);
+                }
                 imagelist.Add(image);
             }
             images = imagelist.ToArray();
@@ -256,14 +276,14 @@ namespace ScoreboardToJSON
 
         public Warning StringToWarning(string str)
         {
-            if (str == "M")
-                return Warning.M;
-            else if (str == "T")
-                return Warning.T;
-            else if (str == "MT" || str == "TM")
-                return Warning.MT;
-            else
-                return Warning.None;
+            Warning teamwarn = 0;
+            if (str.Contains("M"))
+                teamwarn |= Warning.MultiImage;
+            if (str.Contains("T"))
+                teamwarn |= Warning.TimeOver;
+            if (str.Contains("W"))
+                teamwarn |= Warning.Withdrawn;
+            return teamwarn;
         }
         public double GetCiscoScore()
         {

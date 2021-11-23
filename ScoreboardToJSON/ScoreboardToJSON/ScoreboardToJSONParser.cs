@@ -91,7 +91,7 @@ namespace ScoreboardToJSON
                 // Dispose of client just in case
                 client.Dispose();
 
-                return html.Contains($"13-{team}");
+                return html.Contains($"14-{team}");
             }
             catch
             {
@@ -123,12 +123,12 @@ namespace ScoreboardToJSON
         /// </summary>
         public void GetTeamsFromScoreboard()
         {
-            // Regex all teams and set TeamsStrArr to an array of all team numbers (not includng 12-)
-            MatchCollection teamsonscoreboard = Regex.Matches(ScoreboardHTML, @"13\-[0-9]{4}[^']");
+            // Regex all teams and set TeamsStrArr to an array of all team numbers (not includng 14-)
+            MatchCollection teamsonscoreboard = Regex.Matches(ScoreboardHTML, @"14\-[0-9]{4}[^']");
             List<string> teamlist = new List<string>();
             foreach (Match match in teamsonscoreboard)
             {
-                string matchstring = match.Value.Replace("<", "").Replace("13-", "");
+                string matchstring = match.Value.Replace("<", "").Replace("14-", "");
                 teamlist.Add(matchstring);
             }
             TeamsStrArr = teamlist.ToArray();
@@ -154,11 +154,11 @@ namespace ScoreboardToJSON
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                Console.WriteLine($"{currentteam}/{totalteams} 13-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
+                Console.WriteLine($"{currentteam}/{totalteams} 14-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
                 if (DoesTeamExist(team))
                     teamlist.Add(new Team(ScoreboardHTML, configline, team, GetTeamRank(team), doc));
                 else
-                    Console.WriteLine($"Team 13-{team} does not exist, skipping...");
+                    Console.WriteLine($"Team 14-{team} does not exist, skipping...");
                 currentteam++;
             }
             return teamlist;
@@ -182,11 +182,11 @@ namespace ScoreboardToJSON
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                Console.WriteLine($"{currentteam}/{totalteams} 13-{team}   {Math.Round(percentdone, 2)}% finished with Team Details Parsing");
+                Console.WriteLine($"{currentteam}/{totalteams} 14-{team}   {Math.Round(percentdone, 2)}% finished with Team Details Parsing");
                 if (DoesTeamExist(team))
                     teamlist.Add(new TeamAdvanced(configline, team));
                 else
-                    Console.WriteLine($"Team 13-{team} does not exist, skipping...");
+                    Console.WriteLine($"Team 14-{team} does not exist, skipping...");
                 currentteam++;
                 Thread.Sleep(2000);
             }

@@ -80,18 +80,8 @@ namespace ScoreboardToJSON
         {
             try
             {
-                string html = "";
 
-                // Create a new webclient
-                WebClient client = new WebClient();
-
-                // Download webclient data
-                html = client.DownloadString(baseURL);
-
-                // Dispose of client just in case
-                client.Dispose();
-
-                return html.Contains($"14-{team}");
+                return ScoreboardHTML.Contains($"14-{team}");
             }
             catch
             {
@@ -154,7 +144,7 @@ namespace ScoreboardToJSON
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                Console.WriteLine($"{currentteam}/{totalteams} 14-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
+                // Console.WriteLine($"{currentteam}/{totalteams} 14-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
                 if (DoesTeamExist(team))
                     teamlist.Add(new Team(ScoreboardHTML, configline, team, GetTeamRank(team), doc));
                 else

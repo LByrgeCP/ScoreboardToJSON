@@ -215,17 +215,18 @@ namespace ScoreboardToJSON
         /// </summary>
         public void AddRoundJSON()
         {
-            Console.Write("Input the round number (1, 2, 3, 4): ");
-            string input = Console.ReadLine();
-            int round;
-            try
-            {
-                round = int.Parse(input);
-            }
-            catch
-            {
-                round = 0;
-            }
+            //Console.Write("Input the round number (1, 2, 3, 4): ");
+            //string input = Console.ReadLine();
+            //int round;
+            //try
+            //{
+            //    round = int.Parse(input);
+            //}
+            //catch
+            //{
+            //    round = 0;
+            //}
+            int round = 3;
             JProperty roundprop = new JProperty("round", round);
             OutJSON.Add(roundprop);
         }

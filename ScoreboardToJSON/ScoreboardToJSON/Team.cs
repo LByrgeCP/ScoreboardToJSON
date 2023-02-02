@@ -7,12 +7,12 @@ using ScoreboardToJSON.Structs;
 using ScoreboardToJSON.Enums;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace ScoreboardToJSON
 {
     public class Team
     {
-        string ScoreboardHTML;
         public string teamnumber;
         public string teamid;
         public string location;
@@ -26,16 +26,14 @@ namespace ScoreboardToJSON
         public ScoreboardTable scoreboardTable;
         public int rank;
         public HtmlDocument doc;
-        public Team(string html, string config, string Teamnumber, int teamplace, HtmlDocument document)
+        public Team(string config, string Teamnumber, int teamplace, string year, HtmlDocument document)
         {
             doc = document;
             rank = teamplace;
-            ScoreboardHTML = html;
             configLine = config;
             scoreboardTable = new ScoreboardTable(configLine);
             teamnumber = Teamnumber;
-            html = null;
-            teamid = "14-" + Teamnumber;
+            teamid = year + "-" + Teamnumber;
             location = GetLocationFromScoreboard();
             division = GetDivisionFromScoreboard();
             tier = GetTierFromScoreboard();

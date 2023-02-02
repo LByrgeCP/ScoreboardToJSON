@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,19 +19,43 @@ namespace ScoreboardToJSON
         private string OutputFile;
         public string ScoreboardHTML;
         public string[] TeamsStrArr;
-        public ScoreboardToJSONParser(string fileInput, string urlInput, string fileOutput, string[] customTeamlist = null)
+        public string boeingJSON;
+        public ScoreboardToJSONParser(string fileInput, string urlInput, string fileOutput, string year, string boeing, string[] customTeamlist = null)
         {
             // Set needed variables
             ConfigFile = fileInput;
             baseURL = urlInput;
             OutputFile = fileOutput;
 
+            if(boeing != null)
+            {
+                // download contents of the url in boeing to boeingJSON
+                try
+                {
+                    // Create a new webclient
+                    WebClient client = new WebClient();
+
+                    // boeingJSON webclient data
+                    boeingJSON = client.DownloadString(boeing);
+
+                    // Dispose of client just in case
+                    client.Dispose();
+                }
+                catch
+                {
+                    Console.WriteLine($"Downloading URL {baseURL} Failed");
+                    Console.WriteLine("Press any key to exit");
+                    Console.ReadKey();
+                    Environment.Exit(0);
+                }
+            }
+
             // Download the html for mass parsing
             DownloadScoreboardHTML();
-
+            
             if (customTeamlist == null)
                 // Find all teams on scoreboard
-                GetTeamsFromScoreboard();
+                GetTeamsFromScoreboard(year);
             else
                 // Set custom input teams to TeamsStrArr
                 TeamsStrArr = customTeamlist;
@@ -45,10 +70,10 @@ namespace ScoreboardToJSON
             }
 
             // Grab all Teams summary data as List<Team>
-            List<Team> teamList = GetTeams(conflines[0]);
+            List<Team> teamList = GetTeams(conflines[0], year);
 
             // Grab all Teams descriptive data as List<TeamAdvanced>
-            List<TeamAdvanced> teamAdvList = GetAdvTeams(conflines[1]);
+            List<TeamAdvanced> teamAdvList = GetAdvTeams(conflines[1], year);
 
             JsonFormatter jsonFormatter = new JsonFormatter();
             jsonFormatter.CreateOutJSON(teamList, teamAdvList, fileOutput);
@@ -76,17 +101,18 @@ namespace ScoreboardToJSON
             }
         }
 
-        public bool DoesTeamExist(string team)
+        public bool DoesTeamExist(string team, string year)
         {
             try
             {
 
-                return ScoreboardHTML.Contains($"14-{team}");
+                return ScoreboardHTML.Contains($"{year}-{team}");
             }
             catch
             {
                 Console.WriteLine($"Downloading URL {baseURL} Failed, trying again in 5 seconds");
-                return DoesTeamExist(team);
+                Thread.Sleep(5000);
+                return DoesTeamExist(team, year);
             }
         }
 
@@ -111,14 +137,14 @@ namespace ScoreboardToJSON
         /// <summary>
         /// Finds all teams on scoreboard
         /// </summary>
-        public void GetTeamsFromScoreboard()
+        public void GetTeamsFromScoreboard(string year)
         {
-            // Regex all teams and set TeamsStrArr to an array of all team numbers (not includng 14-)
-            MatchCollection teamsonscoreboard = Regex.Matches(ScoreboardHTML, @"14\-[0-9]{4}[^']");
+            // Regex all teams and set TeamsStrArr to an array of all team numbers (not includng {year}-)
+            MatchCollection teamsonscoreboard = Regex.Matches(ScoreboardHTML, $"{year}\\-[0-9]{{4}}[^']");
             List<string> teamlist = new List<string>();
             foreach (Match match in teamsonscoreboard)
             {
-                string matchstring = match.Value.Replace("<", "").Replace("14-", "");
+                string matchstring = match.Value.Replace("<", "").Replace($"{year}-", "");
                 teamlist.Add(matchstring);
             }
             TeamsStrArr = teamlist.ToArray();
@@ -132,7 +158,7 @@ namespace ScoreboardToJSON
         /// strings representing each row in the scoreboard table.
         /// </param>
         /// <returns>A List of Teans for the JSON</returns>
-        public List<Team> GetTeams(string configline)
+        public List<Team> GetTeams(string configline, string year)
         {
             // For printing how many teams are parsed
             int currentteam = 1;
@@ -144,11 +170,11 @@ namespace ScoreboardToJSON
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                // Console.WriteLine($"{currentteam}/{totalteams} 14-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
-                if (DoesTeamExist(team))
-                    teamlist.Add(new Team(ScoreboardHTML, configline, team, GetTeamRank(team), doc));
+                // Console.WriteLine($"{currentteam}/{totalteams} {year}-{team}   {Math.Round(percentdone, 2)}% finished with Team Summaries Parsing");
+                if (DoesTeamExist(team, year))
+                    teamlist.Add(new Team(configline, team, GetTeamRank(team), year, doc));
                 else
-                    Console.WriteLine($"Team 14-{team} does not exist, skipping...");
+                    Console.WriteLine($"Team {year}-{team} does not exist, skipping...");
                 currentteam++;
             }
             return teamlist;
@@ -161,22 +187,22 @@ namespace ScoreboardToJSON
         /// strings representing each row in a teams table.
         /// </param>
         /// <returns>List of TeamAdvanced</returns>
-        public List<TeamAdvanced> GetAdvTeams(string configline)
+        public List<TeamAdvanced> GetAdvTeams(string configline, string year)
         {
             // For printing how many teams are parsed
             int currentteam = 1;
             int totalteams = TeamsStrArr.Length;
-
+            
             // loop through all teams and add each one to teamlist
             List<TeamAdvanced> teamlist = new List<TeamAdvanced>();
             foreach (string team in TeamsStrArr)
             {
                 double percentdone = (double)currentteam / (double)totalteams * 100;
-                Console.WriteLine($"{currentteam}/{totalteams} 14-{team}   {Math.Round(percentdone, 2)}% finished with Team Details Parsing");
-                if (DoesTeamExist(team))
-                    teamlist.Add(new TeamAdvanced(configline, team));
+                Console.WriteLine($"{currentteam}/{totalteams} {year}-{team}   {Math.Round(percentdone, 2)}% finished with Team Details Parsing");
+                if (DoesTeamExist(team, year))
+                    teamlist.Add(new TeamAdvanced(configline, team, year, baseURL, boeingJSON));
                 else
-                    Console.WriteLine($"Team 14-{team} does not exist, skipping...");
+                    Console.WriteLine($"Team {year}-{team} does not exist, skipping...");
                 currentteam++;
                 Thread.Sleep(2000);
             }

@@ -33,8 +33,12 @@ namespace ScoreboardToJSON
             }
             string fileInput = args[1];
             string urlInput = "http://scoreboard.uscyberpatriot.org/";
+            string boeingURL = null;
             string fileOutput = "Scoreboard.json";
             string[] customteamsinput = null;
+            string year = null;
+
+            /*
             if (args.Length > 2)
             {
                 if(args[2] == "-u")
@@ -111,18 +115,69 @@ namespace ScoreboardToJSON
                     return;
                 }
             }
-            if(args.Length > 8)
-            {
-                Show_Error($"Incorrect Input");
+            */
+
+
+            /* verify the arguments after the first 2.
+            if the arg is -u:
+                urlInput = args[i];
+                if (!Uri.IsWellFormedUriString(urlInput, UriKind.Absolute))
+                {
+                    Show_Error($"Invalid url {urlInput}, using default.");
+                    urlInput = "http://scoreboard.uscyberpatriot.org/";
+                }
+            if the arg is -o:
+                fileOutput = args[i];
+            if the arg is -t:
+                customteamsinput = ParseCustomTeams(args[i]);
+            if the arg is -y:
+                year = args[i]
+            if any other argument is used:
+                Show_Error($"Incorrect Input {args[5]}");
                 Show_Help();
-                return; 
+                return;
+            */
+            // parse arguments
+            for (int i = 2; i < args.Length; i += 2)
+            {
+                switch (args[i])
+                {
+                    case "-u":
+                        urlInput = args[i + 1];
+                        if (!Uri.IsWellFormedUriString(urlInput, UriKind.Absolute))
+                        {
+                            Show_Error($"Invalid url {urlInput}, using default.");
+                            urlInput = "http://scoreboard.uscyberpatriot.org/";
+                        }
+                        break;
+                    case "-o":
+                        fileOutput = args[i + 1];
+                        break;
+                    case "-t":
+                        customteamsinput = ParseCustomTeams(args[i + 1]);
+                        break;
+                    case "-y":
+                        year = args[i + 1];
+                        break;
+                    case "-b":
+                        boeingURL = args[i + 1];
+                        break;
+                    default:
+                        Show_Error($"Incorrect Input {args[i]}");
+                        Show_Help();
+                        return;
+                }
             }
             #endregion
+            if (year == null)
+            {
+                year = GetYear(urlInput);
+            }
             // Stopwatch to see how long the program takes
             var watch = new System.Diagnostics.Stopwatch();
             watch.Start();
             // Start parsing scoreboard
-            new ScoreboardToJSONParser(fileInput, urlInput, fileOutput, customteamsinput);
+            new ScoreboardToJSONParser(fileInput, urlInput, fileOutput, year, boeingURL, customteamsinput);
 
             // Stop stopwatch and print out execution time
             watch.Stop();
@@ -147,6 +202,10 @@ namespace ScoreboardToJSON
             Console.WriteLine("\t               Default: Scoreboard.json");
             Console.WriteLine("\t -t <file>     File containing custom team numbers to parse seperated by commas");
             Console.WriteLine("\t               NOTE: make sure the team numbers do not include the year and dash");
+            Console.WriteLine("\t -y <year>     CyberPatriot Year code for the teams");
+            Console.WriteLine("\t               Default: Will try to manually parse the year.");
+            Console.WriteLine("\t -b <url>     URL for Boeing JSON API");
+            Console.WriteLine("\t               EXAMPLE: https://scoring.bcet-challenge.com/json?view=scoreboard&user_type=6");
             Console.WriteLine("\n\n\n");
             Console.WriteLine("View the source code at http://github.com/LByrgeCP/ScoreboardToJSON");
         }
@@ -185,6 +244,20 @@ namespace ScoreboardToJSON
                 }
             }
             return teamsarr;
+        }
+        // Function to download the scoreboard from urlInput, get the team id from a regex of [0-9]{2}-[0-9]{4} and return the 2 digit string before the -
+        public static string GetYear(string urlInput)
+        {
+            try
+            {
+                string scoreboard = new WebClient().DownloadString(urlInput);
+                string year = Regex.Match(scoreboard, "[0-9]{2}-[0-9]{4}").Value;
+                return year.Substring(0, 2);
+            } catch
+            {
+                Show_Error("Could not get year from scoreboard. Please manually Input");
+                return null;
+            }
         }
     }
 }

@@ -104,7 +104,7 @@ namespace ScoreboardToJSON
             // Add the summary Property to the output JSON
             OutJSON.Add(Summary);
         }
-        
+
         /// <summary>
         /// Add Team's detailed data to the json
         /// </summary>
@@ -150,7 +150,39 @@ namespace ScoreboardToJSON
                         };
                     Images.Add(imageobj);
                 }
-                JObject Ciscoobj = new JObject
+                if (team.challengeScore != -1)
+                {
+                    JObject challengeobj = new JObject
+                    {
+                        new JProperty("ImageName", "CyberPatriot Web-Based Challenge"),
+                        new JProperty("PlayTime", "00:00:00"),
+                        new JProperty("VulnerabilitiesFound", 0),
+                        new JProperty("VulnerabilitiesRemaining", 0),
+                        new JProperty("Penalties", 0),
+                        new JProperty("Score", team.challengeScore),
+                        new JProperty("PointsPossible", -1),
+                        new JProperty("Warnings", 0)
+                    };
+                    Images.Add(challengeobj);
+                }
+                if (team.boeingScore != -1)
+                {
+                    JObject boeingobj = new JObject
+                    {
+                        new JProperty("ImageName", "Boeing Cyber-Physical Systems Challenge"),
+                        new JProperty("PlayTime", "00:00:00"),
+                        new JProperty("VulnerabilitiesFound", 0),
+                        new JProperty("VulnerabilitiesRemaining", 0),
+                        new JProperty("Penalties", 0),
+                        new JProperty("Score", team.boeingScore),
+                        new JProperty("PointsPossible", -1),
+                        new JProperty("Warnings", 0)
+                    };
+                    Images.Add(boeingobj);
+                }
+                if (team.ciscoScore != -1)
+                {
+                    JObject Ciscoobj = new JObject
                     {
                         new JProperty("ImageName", "Cisco (Total)"),
                         new JProperty("PlayTime", "00:00:00"),
@@ -161,8 +193,11 @@ namespace ScoreboardToJSON
                         new JProperty("PointsPossible", -1),
                         new JProperty("Warnings", 0)
                     };
-                Images.Add(Ciscoobj);
-                JObject AdminAdjust = new JObject
+                    Images.Add(Ciscoobj);
+                }
+                if (team.AdministrativeAdjustment != -1)
+                {
+                    JObject AdminAdjust = new JObject
                     {
                         new JProperty("ImageName", "Administrative Adjustment"),
                         new JProperty("PlayTime", "00:00:00"),
@@ -173,7 +208,8 @@ namespace ScoreboardToJSON
                         new JProperty("PointsPossible", 0),
                         new JProperty("Warnings", 0)
                     };
-                Images.Add(AdminAdjust);
+                    Images.Add(AdminAdjust);
+                }
                 JProperty originuri = new JProperty("OriginUri", team.originuri);
                 JProperty Snapshottime = new JProperty("SnapshotTimestamp", team.snapshottimestamp.ToString("yyyy-MM-ddTHH:mm:ss+00:00", null));
                 JObject ImageScoresOverTime = new JObject();
@@ -215,18 +251,7 @@ namespace ScoreboardToJSON
         /// </summary>
         public void AddRoundJSON()
         {
-            //Console.Write("Input the round number (1, 2, 3, 4): ");
-            //string input = Console.ReadLine();
-            //int round;
-            //try
-            //{
-            //    round = int.Parse(input);
-            //}
-            //catch
-            //{
-            //    round = 0;
-            //}
-            int round = 3;
+            int round = 4;
             JProperty roundprop = new JProperty("round", round);
             OutJSON.Add(roundprop);
         }

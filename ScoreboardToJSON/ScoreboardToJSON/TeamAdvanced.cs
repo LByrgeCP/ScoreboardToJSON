@@ -1,9 +1,11 @@
 ﻿using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
 using ScoreboardToJSON.Enums;
 using ScoreboardToJSON.Structs;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -28,15 +30,17 @@ namespace ScoreboardToJSON
         public DateTimeOffset snapshottimestamp;
         public Dictionary<string, SortedDictionary<DateTimeOffset, int?>> ImageScoresOverTime = new Dictionary<string, SortedDictionary<DateTimeOffset, int?>>();
         public double ciscoScore;
+        public double challengeScore;
+        public int boeingScore; 
         public int AdministrativeAdjustment;
 
         public TeamTable teamtable;
 
-        public TeamAdvanced(string configline, string Teamnumber)
+        public TeamAdvanced(string configline, string Teamnumber, string year, string url, string boeingJSON)
         {
             teamnumber = Teamnumber;
-            teamid = $"14-{teamnumber}";
-            originuri = $"http://scoreboard.uscyberpatriot.org/team.php?team={teamid}";
+            teamid = $"{year}-{teamnumber}";
+            originuri = $"{url}team.php?team={teamid}";
             teamtable = new TeamTable(configline);
             GetTeamScoreboardHtml();
             location = GetLocationFromScoreboard();
@@ -50,6 +54,8 @@ namespace ScoreboardToJSON
             {
                 totalscore = GetTotalScoreFromScoreboard();
                 ciscoScore = GetCiscoScore();
+                challengeScore = GetChallengeScore();
+                boeingScore = GetBoeingScore(boeingJSON);
                 GetAdvancedImages();
                 GetImages();
                 AdministrativeAdjustment = GetAdminAdjust();
@@ -59,8 +65,10 @@ namespace ScoreboardToJSON
                 GetAdvancedImages();
                 GetImages();
                 totalscore = 0;
-                ciscoScore = 0;
-                AdministrativeAdjustment = 0;
+                ciscoScore = -1;
+                challengeScore = -1;
+                AdministrativeAdjustment = -1;
+                boeingScore = -1;
             }
         }
         public void GetTeamScoreboardHtml()
@@ -279,7 +287,7 @@ namespace ScoreboardToJSON
             Warning teamwarn = 0;
             if (str.Contains("M"))
                 teamwarn |= Warning.MultiImage;
-            if (str.Contains("T"))
+            if (str.Contains("T") || str.Contains("C"))
                 teamwarn |= Warning.TimeOver;
             if (str.Contains("W"))
                 teamwarn |= Warning.Withdrawn;
@@ -288,7 +296,7 @@ namespace ScoreboardToJSON
         public double GetCiscoScore()
         {
             if (teamtable.ciscoColumn == -1)
-                return 0;
+                return -1;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.ciscoColumn}]");
@@ -298,12 +306,39 @@ namespace ScoreboardToJSON
         public int GetAdminAdjust()
         {
             if (teamtable.adminAdjustColumn == -1)
-                return 0;
+                return -1;
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(TeamscoreboardHtml);
             HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.adminAdjustColumn}]");
             string line = node.InnerText;
             return (int)double.Parse(line);
+        }
+
+        public double GetChallengeScore()
+        {
+            if (teamtable.challengeColumn == -1)
+                return -1;
+            if (tier != Tier.Platinum)
+                return -1;
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(TeamscoreboardHtml);
+            HtmlNode node = doc.DocumentNode.SelectSingleNode($"/html/body/div[2]/div/table[1]/tr[2]/td[{teamtable.challengeColumn}]");
+            string line = node.InnerText;
+            return (int)double.Parse(line);
+        }
+
+        public int GetBoeingScore(string boeingJSON)
+        {
+            JObject o = JObject.Parse(boeingJSON);
+            JArray standings = (JArray)o["standings"];
+            foreach (JObject standing in standings)
+            {
+                if (standing["team"].ToString() == teamid)
+                {
+                    return int.Parse(standing["score"].ToString());
+                }
+            }
+            return -1;
         }
 
         public string comment = null;
